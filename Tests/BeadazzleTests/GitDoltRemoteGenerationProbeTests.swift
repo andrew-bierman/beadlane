@@ -60,12 +60,17 @@ final class GitDoltRemoteGenerationProbeTests: XCTestCase {
             GitDoltRemoteGenerationProbe.normalizedGitRemoteURL("project.git"),
             "project.git"
         )
+        XCTAssertEqual(
+            GitDoltRemoteGenerationProbe.normalizedGitRemoteURL("git+file:///tmp/project.git"),
+            "file:///tmp/project.git"
+        )
     }
 
     func testRejectsNonGitRemoteURLs() {
         XCTAssertNil(GitDoltRemoteGenerationProbe.normalizedGitRemoteURL(""))
         XCTAssertNil(GitDoltRemoteGenerationProbe.normalizedGitRemoteURL("dolthub://example/project"))
         XCTAssertNil(GitDoltRemoteGenerationProbe.normalizedGitRemoteURL("mysql://localhost:3306/project"))
+        XCTAssertNil(GitDoltRemoteGenerationProbe.normalizedGitRemoteURL("file:///tmp/dolt-chunks"))
     }
 
     func testParsesDoltGenerationFromLSRemoteOutput() throws {
