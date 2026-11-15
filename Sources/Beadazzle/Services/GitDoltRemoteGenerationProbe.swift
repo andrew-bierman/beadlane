@@ -101,11 +101,15 @@ enum GitDoltRemoteGenerationProbe {
         let value = rawValue.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !value.isEmpty else { return nil }
 
-        let normalized = value.lowercased().hasPrefix("git+")
+        let isExplicitGitRemote = value.lowercased().hasPrefix("git+")
+        let normalized = isExplicitGitRemote
             ? String(value.dropFirst(4))
             : value
         if let scheme = URLComponents(string: normalized)?.scheme?.lowercased(),
            ["ssh", "http", "https", "git", "file"].contains(scheme) {
+            // Dolt uses plain file:// URLs for its native local chunk store;
+            // only git+file:// identifies a local Git-backed Dolt remote.
+            if scheme == "file", !isExplicitGitRemote { return nil }
             return normalized
         }
         // Do not reinterpret an unsupported URL scheme's colon as an SCP separator.
