@@ -31,6 +31,8 @@ enum ProjectAutomaticSyncRunner {
             ) {
                 nextAttempt = now.addingTimeInterval(interval)
                 let succeeded: Bool
+                let operationID = UUID()
+                store.automaticSyncOperationID = operationID
                 switch mode {
                 case .off:
                     succeeded = true
@@ -45,7 +47,10 @@ enum ProjectAutomaticSyncRunner {
                         announcesCompletion: false
                     )
                 }
-                if !Task.isCancelled, store.projectURL == projectURL {
+                let ownsOperation = store.projectURL == projectURL
+                    && store.automaticSyncOperationID == operationID
+                if ownsOperation { store.automaticSyncOperationID = nil }
+                if !Task.isCancelled, ownsOperation {
                     if succeeded {
                         store.automaticSyncLastSuccessAt = Date()
                     } else if store.automaticSyncMode == mode {
