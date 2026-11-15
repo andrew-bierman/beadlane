@@ -15,6 +15,7 @@ extension BeadStore {
         priorityFilters = []
         labelFilters = []
         _savedViewFilterClock = Date()
+        showsKanbanBoard = false
         suppressesFilterUpdates = false
     }
 
@@ -115,7 +116,8 @@ extension BeadStore {
             outlineState: outlineState,
             creationDraft: creationDraft,
             issueEditDrafts: issueEditDrafts,
-            commentDrafts: commentDrafts
+            commentDrafts: commentDrafts,
+            showsKanbanBoard: showsKanbanBoard
         )
     }
 
@@ -227,6 +229,7 @@ extension BeadStore {
             ? .sorted(BeadSavedViewSort(field: sort, direction: sortDirection))
             : snapshot.listOrdering
         issueListMode = snapshot.issueListMode
+        showsKanbanBoard = snapshot.showsKanbanBoard
         outlineState = snapshot.outlineState
         suppressesFilterUpdates = false
         isRestoringWorkspace = false

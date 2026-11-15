@@ -1191,6 +1191,42 @@ final class BeadStorePreferencesTests: XCTestCase {
         XCTAssertEqual(store.folderIssueIDs(id: batchFolderID), ["bd-2", "bd-1"])
     }
 
+    func testBoardDropRoutesOnlySameProjectBeadsToStatusChange() async throws {
+        let projectURL = try makeProject(issueLine(id: "bd-1", status: "open", type: "task"))
+        let store = BeadStore(userDefaults: makeUserDefaults(), commands: PreferenceTestCommands())
+        store.openProject(projectURL)
+        try await waitUntil { !store.isLoading && store.issue(with: "bd-1") != nil }
+        let status = try XCTUnwrap(store.availableStatuses.first { $0 != "open" })
+        let payload = try XCTUnwrap(store.beadDragPayload(issueID: "bd-1"))
+        let accepted = expectation(description: "same-project drop requests a status change")
+        let provider = NSItemProvider()
+        let data = try JSONEncoder().encode(payload)
+        provider.registerDataRepresentation(forTypeIdentifier: "public.json", visibility: .all) { completion in
+            completion(data, nil)
+            return nil
+        }
+
+        XCTAssertTrue(BeadBoardDropHandler.accept([provider], status: status, store: store) { ids, requestedStatus in
+            XCTAssertEqual(ids, ["bd-1"])
+            XCTAssertEqual(requestedStatus, status)
+            accepted.fulfill()
+        })
+        await fulfillment(of: [accepted], timeout: 3)
+
+        let foreign = BeadDragPayload(projectIdentity: "/another/project", issueID: "bd-1", sourceFolderID: nil)
+        let foreignData = try JSONEncoder().encode(foreign)
+        let foreignProvider = NSItemProvider()
+        foreignProvider.registerDataRepresentation(forTypeIdentifier: "public.json", visibility: .all) { completion in
+            completion(foreignData, nil)
+            return nil
+        }
+        XCTAssertTrue(BeadBoardDropHandler.accept([foreignProvider], status: status, store: store) { _, _ in
+            XCTFail("A drop from another project must not change a bead")
+        })
+        try await waitUntil { store.lastError != nil }
+        XCTAssertEqual(store.lastError, "Beads can only be moved within the same project.")
+    }
+
     func testSavedViewCRUDAndOrderingPersist() async throws {
         let defaults = makeUserDefaults()
         let projectURL = try makeProject(issueLine(id: "bd-1", status: "open", type: "task"))

@@ -32,6 +32,8 @@ struct BeadWorkspaceStatePayload: Codable, Sendable {
     /// backward compatible without discarding the rest of the workspace state.
     var issueEditDrafts: [String: IssueEditDraftState]?
     var commentDrafts: [String: String]?
+    /// Optional so workspaces saved by earlier versions still restore normally.
+    var showsKanbanBoard: Bool?
 
     init(snapshot: BeadWorkspaceSnapshot) {
         version = Self.currentVersion
@@ -55,6 +57,7 @@ struct BeadWorkspaceStatePayload: Codable, Sendable {
         creationDraft = snapshot.creationDraft
         issueEditDrafts = snapshot.issueEditDrafts.isEmpty ? nil : snapshot.issueEditDrafts
         commentDrafts = snapshot.commentDrafts.isEmpty ? nil : snapshot.commentDrafts
+        showsKanbanBoard = snapshot.showsKanbanBoard
     }
 
     func snapshot() -> BeadWorkspaceSnapshot {
@@ -81,7 +84,8 @@ struct BeadWorkspaceStatePayload: Codable, Sendable {
             outlineState: outlineState,
             creationDraft: creationDraft,
             issueEditDrafts: issueEditDrafts ?? [:],
-            commentDrafts: commentDrafts ?? [:]
+            commentDrafts: commentDrafts ?? [:],
+            showsKanbanBoard: showsKanbanBoard ?? false
         )
     }
 }

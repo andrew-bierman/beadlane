@@ -23,6 +23,7 @@ struct BeadWorkspaceSnapshot: Equatable, Sendable {
     var creationDraft: IssueDraft?
     var issueEditDrafts: [String: IssueEditDraftState] = [:]
     var commentDrafts: [String: String] = [:]
+    var showsKanbanBoard: Bool = false
 }
 
 struct BeadWorkspaceHistory: Equatable, Sendable {

@@ -19,6 +19,7 @@ final class BeadStoreWorkspaceRestoreTests: XCTestCase {
         try await waitForStoreToLoad(firstStore)
 
         firstStore.issueListMode = .flat
+        firstStore.showsKanbanBoard = true
         firstStore.sort = .title
         firstStore.sortDirection = .descending
         firstStore.setStatusFilter("open", isOn: true)
@@ -35,11 +36,38 @@ final class BeadStoreWorkspaceRestoreTests: XCTestCase {
         try await waitForStoreToLoad(secondStore)
 
         XCTAssertEqual(secondStore.issueListMode, .flat)
+        XCTAssertTrue(secondStore.showsKanbanBoard)
         XCTAssertEqual(secondStore.sort, .title)
         XCTAssertEqual(secondStore.sortDirection, .descending)
         XCTAssertEqual(secondStore.statusFilters, Set(["open"]))
         XCTAssertEqual(secondStore.selectedIDs, Set(["bd-child"]))
         XCTAssertTrue(secondStore.outlineState.expandedIssueIDs.contains("bd-parent"))
+    }
+
+    func testBoardPresentationIsRestoredPerProject() async throws {
+        let firstURL = try makeProject(issuesJSONL: issuesJSONL)
+        let secondURL = try makeProject(issuesJSONL: issuesJSONL)
+        let defaults = makeUserDefaults()
+        let store = BeadStore(userDefaults: defaults, commands: CurrentDoltTestCommands())
+
+        store.openProject(secondURL)
+        try await waitForStoreToLoad(store)
+        store.sort = .title
+        store.flushPendingWorkspaceState()
+
+        store.openProject(firstURL)
+        try await waitForStoreToLoad(store)
+        store.showsKanbanBoard = true
+        store.flushPendingWorkspaceState()
+
+        store.openProject(secondURL)
+        try await waitForStoreToLoad(store)
+        XCTAssertFalse(store.showsKanbanBoard)
+        XCTAssertEqual(store.sort, .title)
+
+        store.openProject(firstURL)
+        try await waitForStoreToLoad(store)
+        XCTAssertTrue(store.showsKanbanBoard)
     }
 
     func testExistingBeadAndCommentDraftsSurviveNavigationAndReopening() async throws {

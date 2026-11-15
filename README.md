@@ -35,6 +35,7 @@ The published DMG is intended to be `Developer ID` signed, notarized, and staple
 - Restores the open project windows from the previous session when their folders remain available.
 - Works on several projects at once, with independent navigation and mutation state in each window.
 - Fast issue browsing with search, filters, outline mode, sort controls, and multi-selection.
+- A native status board using the current view, filters, and sort; drag cards between statuses or use their status menu.
 - Split list/detail navigation with a full-page detail mode, Back/Forward support, and native context menus.
 - Detail editing for title, description, design, acceptance criteria, notes, labels, status, priority, assignee, and dates.
 - Live metadata updates for status, priority, labels, assignee, parent, blockers, blocked-by relationships, and deferral dates.
@@ -43,7 +44,7 @@ The published DMG is intended to be `Developer ID` signed, notarized, and staple
 - Fast relationship pickers with search, filters, outline mode, and quick-create flows.
 - Per-project sidebar bookmarks (saved views) with multi-select filters, nested boolean rules, custom names and icons, counts, live previews, reordering, and duplication.
 - Bookmark folders for collecting beads from any list by drag and drop or bead menus, arranging them manually, and copying their IDs for handoff.
-- Restores each project's workspace when reopened: last view or bookmark, search and filters, sort, list mode, outline expansion, selection, and open detail.
+- Restores each project's workspace when reopened: last view or bookmark, search and filters, sort, board or list mode, outline expansion, selection, and open detail.
 - Project settings for storage, Dolt remote health and synchronization, snapshot freshness, readable export health, optional hooks, backups, and Ready workflow preferences.
 - One-action Beads Sync that pulls before pushing, directional Pull and Push commands, and lightweight Git-backed remote-change checks that do not download the database.
 - Guided setup and repair for private, solo, team, and contributor checkouts, with reviewed commands and local drift reminders.

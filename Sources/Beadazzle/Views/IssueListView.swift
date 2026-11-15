@@ -12,6 +12,9 @@ struct IssueListView: View {
     let requestBulkEdit: (Set<String>, BulkEditTarget) -> Void
     let requestDelete: (Set<String>) -> Void
     let openDetail: (String) -> Void
+    private var showsBoard: Bool {
+        store.showsKanbanBoard && store.effectiveIssueListBookmark != .gates
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -19,7 +22,10 @@ struct IssueListView: View {
                 bookmark: store.effectiveIssueListBookmark,
                 hasSearchText: !store.trimmedSearchText.isEmpty
             ) {
-                IssueListHeader()
+                IssueListHeader(showsBoard: Binding(
+                    get: { store.showsKanbanBoard },
+                    set: { store.showsKanbanBoard = $0 }
+                ))
                 Divider()
             }
 
@@ -57,6 +63,8 @@ struct IssueListView: View {
                         }
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else if showsBoard {
+                    KanbanBoardView(requestSetStatus: requestSetStatus, openDetail: openDetail)
                 } else if workspace.filteredIssueIDs.isEmpty {
                     noMatchesView
                 } else {
@@ -283,6 +291,7 @@ enum IssueListSurfacePolicy {
 
 private struct IssueListHeader: View {
     @Environment(BeadStore.self) private var store: BeadStore
+    @Binding var showsBoard: Bool
     private var workspace: BeadWorkspaceStore { store.workspace }
 
     var body: some View {
@@ -336,9 +345,19 @@ private struct IssueListHeader: View {
 
                 Spacer(minLength: 8)
 
+                if store.effectiveIssueListBookmark != .gates {
+                    Button {
+                        showsBoard.toggle()
+                    } label: {
+                        Image(systemName: showsBoard ? "list.bullet" : "rectangle.split.3x1")
+                    }
+                    .help(showsBoard ? "Show list" : "Show board")
+                    .accessibilityLabel(showsBoard ? "Show list" : "Show board")
+                }
+
                 // The Gates section always shows gate → blocked beads, so the flat/outline
                 // toggle has no meaning there.
-                if !store.isGlobalSearchActive,
+                if !showsBoard, !store.isGlobalSearchActive,
                    store.effectiveIssueListBookmark != .gates,
                    !store.isShowingFolderInIssueList {
                     IssueListModePicker()

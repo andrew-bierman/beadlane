@@ -815,6 +815,12 @@ final class BeadStore {
             syncCurrentWorkspaceSnapshotIfNeeded()
         }
     }
+    var showsKanbanBoard = false {
+        didSet {
+            guard oldValue != showsKanbanBoard, !suppressesFilterUpdates else { return }
+            syncCurrentWorkspaceSnapshotIfNeeded()
+        }
+    }
     var bdCLIPath = "" {
         didSet {
             guard oldValue != bdCLIPath else { return }

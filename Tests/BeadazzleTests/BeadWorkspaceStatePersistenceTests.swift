@@ -35,12 +35,14 @@ final class BeadWorkspaceStatePersistenceTests: XCTestCase {
         )
         object.removeValue(forKey: "issueEditDrafts")
         object.removeValue(forKey: "commentDrafts")
+        object.removeValue(forKey: "showsKanbanBoard")
 
         let legacyData = try JSONSerialization.data(withJSONObject: object)
         let decoded = try JSONDecoder().decode(BeadWorkspaceStatePayload.self, from: legacyData)
 
         XCTAssertTrue(decoded.snapshot().issueEditDrafts.isEmpty)
         XCTAssertTrue(decoded.snapshot().commentDrafts.isEmpty)
+        XCTAssertFalse(decoded.snapshot().showsKanbanBoard)
     }
 
     func testRepositorySaveThenLoadReturnsEquivalentSnapshot() {
