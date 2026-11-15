@@ -189,6 +189,8 @@ until the user resumes or changes the setting. Automatic pull and push is for
 single-writer projects; do not enable it on shared multi-writer Git-protocol
 remotes, where concurrent pushes can race and damage remote history. These are
 Beadazzle preferences, separate from Beads' `dolt.auto-push` setting.
+Changing the setting during an automatic sync requests a safe stop: the current
+command finishes, and a pending push does not start.
 
 - Pull: Command-Option-Down Arrow
 - Push: Command-Option-Up Arrow

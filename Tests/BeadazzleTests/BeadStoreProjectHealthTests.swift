@@ -68,6 +68,36 @@ final class BeadStoreProjectHealthTests: XCTestCase {
         XCTAssertNotNil(store.automaticSyncLastSuccessAt)
     }
 
+    func testTurningAutomaticSyncOffDuringPullPreventsPush() async throws {
+        let projectURL = try makeProject(named: "AutomaticSyncStopped", issueID: "bd-1")
+        let commands = ProjectHealthTestCommands(pullDelay: .milliseconds(250))
+        let store = BeadStore(userDefaults: makeUserDefaults(), commands: commands)
+        store.openProject(projectURL)
+        try await waitUntil { !store.isLoading && store.issue(with: "bd-1") != nil }
+        await store.waitForPendingProjectDoltRemotesLoad()
+        let sceneID = UUID()
+        store.setWorkspaceSceneActive(true, sceneID: sceneID)
+        store.automaticSyncMode = .sync
+        let runner = Task { await ProjectAutomaticSyncRunner.run(
+            store: store, projectURL: projectURL, interval: 0.05, checkDelay: .milliseconds(5)
+        ) }
+        defer {
+            runner.cancel()
+            store.setWorkspaceSceneActive(false, sceneID: sceneID)
+        }
+        for _ in 0..<200 {
+            if await commands.pullCallCount > 0 { break }
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        let pullCalls = await commands.pullCallCount
+        XCTAssertEqual(pullCalls, 1)
+        store.automaticSyncMode = .off
+        try await waitUntil { store.projectHealthAction == nil }
+        let pushCalls = await commands.pushCallCount
+        XCTAssertEqual(pushCalls, 0)
+        XCTAssertFalse(store.automaticSyncPausedAfterFailure)
+    }
+
     func testAutomaticSyncPausesAfterFailedPullWithoutPushing() async throws {
         let projectURL = try makeProject(named: "AutomaticSyncFailure", issueID: "bd-1")
         let commands = ProjectHealthTestCommands(pullError: BeadError.commandFailed(

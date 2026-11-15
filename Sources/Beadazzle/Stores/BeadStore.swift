@@ -1058,6 +1058,9 @@ final class BeadStore {
     var automaticSyncMode: ProjectAutomaticSyncMode = .off {
         didSet {
             guard oldValue != automaticSyncMode else { return }
+            if !isLoadingProjectPreferences, automaticSyncOperationID != nil {
+                cancelProjectDoltSync()
+            }
             automaticSyncPausedAfterFailure = false
             guard !isLoadingProjectPreferences, let projectURL else { return }
             userDefaults.set(
@@ -1066,6 +1069,7 @@ final class BeadStore {
             )
         }
     }
+    @ObservationIgnored var automaticSyncOperationID: UUID?
     var automaticSyncPausedAfterFailure = false {
         didSet {
             guard oldValue != automaticSyncPausedAfterFailure, !isLoadingProjectPreferences,
