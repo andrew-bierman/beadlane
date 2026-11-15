@@ -15,6 +15,7 @@ for users, not for the commit log.
 
 ### Added
 
+- Build a Beadlane Preview that runs alongside Beadazzle with separate preferences.
 - View filtered beads on a status board and drag cards between columns to change status.
 - Optionally pull, or pull and push, Dolt changes automatically for individual projects. Automatic sync is off by default and pauses if a sync fails.
 
