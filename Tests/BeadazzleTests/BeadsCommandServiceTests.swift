@@ -740,6 +740,24 @@ final class BeadsCommandServiceTests: XCTestCase {
         XCTAssertEqual(commands, ["dolt pull", "dolt push"])
     }
 
+    func testDoltPullAndPushUseTheSelectedNamedRemote() async throws {
+        let projectURL = try makeProjectWithBeadsDirectory()
+        let logURL = projectURL.appendingPathComponent("commands.log")
+        let stubURL = try makeExecutableScript(in: projectURL, contents: """
+        #!/bin/sh
+        printf '%s\n' "$*" >> "$PWD/commands.log"
+        """)
+        let service = BeadsCommandService(executable: { (stubURL, []) })
+        let remote = BeadsDoltRemote(name: "planning", url: "git+https://example.com/team/repo.git", sqlURL: nil, status: "ok")
+
+        try await service.pullDoltRemote(projectURL: projectURL, remote: remote)
+        try await service.pushDoltRemote(projectURL: projectURL, remote: remote)
+
+        let commands = try String(contentsOf: logURL, encoding: .utf8)
+            .split(whereSeparator: \.isNewline).map(String.init)
+        XCTAssertEqual(commands, ["dolt pull --remote planning", "dolt push --remote planning"])
+    }
+
     func testDoltSyncUsesDedicatedNetworkTimeout() async throws {
         let projectURL = try makeProjectWithBeadsDirectory()
         let stubURL = try makeExecutableScript(in: projectURL, contents: """

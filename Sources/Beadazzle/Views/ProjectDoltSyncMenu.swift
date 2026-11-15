@@ -145,6 +145,9 @@ struct ProjectDoltSyncMenu: View {
         if store.isLoadingProjectDoltRemotes {
             return "Checking this project for a Dolt remote"
         }
+        if store.hasUnresolvedProjectDoltSyncRemote {
+            return "The configured sync remote does not match a registered Dolt remote. Check the project’s Beads configuration."
+        }
         if let activeSyncAction {
             guard let phase = project.projectDoltSyncPhase else { return activeSyncAction.title }
             return [phase.title, phase.command, phase.detail]

@@ -708,6 +708,25 @@ final class BeadStoreProjectHealthTests: XCTestCase {
         XCTAssertEqual(checkedRemoteName, "team")
     }
 
+    func testUnresolvedConfiguredRemoteDoesNotFallBackToOrigin() async throws {
+        let projectURL = try makeProject(named: "MissingSyncRemote", issueID: "bd-1")
+        let commands = ProjectHealthTestCommands()
+        await commands.setContextSyncRemote("missing")
+        let store = BeadStore(userDefaults: makeUserDefaults(), commands: commands)
+        store.openProject(projectURL)
+        try await waitUntil { !store.isLoading && store.issue(with: "bd-1") != nil }
+        await store.waitForPendingProjectDoltRemotesLoad()
+
+        XCTAssertTrue(store.hasUnresolvedProjectDoltSyncRemote)
+        XCTAssertFalse(store.canSynchronizeProjectIssues)
+        let succeeded = await store.synchronizeProjectIssues()
+        XCTAssertFalse(succeeded)
+        let pullCalls = await commands.pullCallCount
+        let pushCalls = await commands.pushCallCount
+        XCTAssertEqual(pullCalls, 0)
+        XCTAssertEqual(pushCalls, 0)
+    }
+
     func testProjectSwitchCancelsInFlightRemoteFreshnessCheck() async throws {
         let firstProjectURL = try makeProject(named: "SlowRemoteProject", issueID: "bd-1")
         let secondProjectURL = try makeProject(named: "ReplacementRemoteProject", issueID: "bd-2")

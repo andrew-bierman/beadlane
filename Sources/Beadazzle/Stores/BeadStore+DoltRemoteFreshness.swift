@@ -290,9 +290,12 @@ extension BeadStore {
     func doltRemoteFreshnessRemote(
         in remotes: BeadsDoltRemotes
     ) -> BeadsDoltRemote? {
-        if let syncRemote = projectEnvironment?.context.syncRemote?.nilIfBlank,
-           let configuredRemote = remotes.remotes.first(where: { $0.name == syncRemote }) {
-            return configuredRemote
+        if let syncRemote = projectEnvironment?.context.syncRemote?.nilIfBlank {
+            // An explicit destination that cannot be resolved must not silently
+            // fall back to another remote, especially during automatic sync.
+            return remotes.remotes.first {
+                $0.name == syncRemote || $0.url == syncRemote || $0.sqlURL == syncRemote
+            }
         }
         return remotes.primaryRemote
     }

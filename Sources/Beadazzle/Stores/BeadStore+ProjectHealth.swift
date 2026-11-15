@@ -97,9 +97,14 @@ extension BeadStore {
             && projectDoltRemotes?.value?.remotes.isEmpty == false
     }
 
+    var hasUnresolvedProjectDoltSyncRemote: Bool {
+        hasConfiguredProjectDoltRemote && projectDoltSyncRemote == nil
+    }
+
     var canSynchronizeProjectIssues: Bool {
         hasReadableProject
             && hasConfiguredProjectDoltRemote
+            && projectDoltSyncRemote != nil
             && !isLoading
             && !isApplyingBeadsSetup
             && activeMutationCount == 0
