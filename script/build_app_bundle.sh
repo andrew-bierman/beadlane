@@ -87,7 +87,7 @@ if [[ "$configuration" == "release" ]]; then
   show_bin_arguments+=(-c release)
 fi
 
-build_binary="$(swift "${show_bin_arguments[@]}" 2>/dev/null)/$BEADAZZLE_APP_NAME"
+build_binary="$(swift "${show_bin_arguments[@]}" 2>/dev/null)/$BEADAZZLE_SWIFT_PRODUCT"
 
 rm -rf "$app_bundle"
 mkdir -p "$app_macos"

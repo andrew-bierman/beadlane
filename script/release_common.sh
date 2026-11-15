@@ -5,8 +5,9 @@ if [[ -n "${BEADAZZLE_RELEASE_COMMON_LOADED:-}" ]]; then
 fi
 
 readonly BEADAZZLE_RELEASE_COMMON_LOADED=1
-readonly BEADAZZLE_APP_NAME="Beadazzle"
-readonly BEADAZZLE_BUNDLE_ID="app.beadazzle.macos"
+readonly BEADAZZLE_APP_NAME="${BEADAZZLE_APP_NAME:-Beadazzle}"
+readonly BEADAZZLE_SWIFT_PRODUCT="Beadazzle"
+readonly BEADAZZLE_BUNDLE_ID="${BEADAZZLE_BUNDLE_ID:-app.beadazzle.macos}"
 readonly BEADAZZLE_MIN_SYSTEM_VERSION="14.0"
 readonly BEADAZZLE_DEFAULT_RELEASE_LABEL="0.1.0-local"
 readonly BEADAZZLE_DEFAULT_BUILD_NUMBER="1"
@@ -20,7 +21,7 @@ readonly BEADAZZLE_APP_ICON_SOURCE="$BEADAZZLE_ROOT_DIR/Resources/AppIcon.png"
 
 # Sparkle auto-update configuration.
 # The appcast is published to GitHub Pages by the release workflow.
-readonly BEADAZZLE_SPARKLE_FEED_URL="https://mosnar.github.io/beadazzle/appcast.xml"
+readonly BEADAZZLE_SPARKLE_FEED_URL="${BEADAZZLE_SPARKLE_FEED_URL-https://mosnar.github.io/beadazzle/appcast.xml}"
 # EdDSA public key baked into Info.plist so the app can verify update signatures.
 # Not secret. Generated once with Sparkle's `generate_keys`; paste the public key
 # here (or override via the BEADAZZLE_SPARKLE_PUBLIC_KEY env var in CI).
