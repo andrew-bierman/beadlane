@@ -173,6 +173,10 @@ Settings. Dismissal lasts until the set of findings changes.
 | Sync | Pull first, then push if pull succeeded | Exports and reloads after the remote commands | User initiated or explicitly enabled per project |
 | Setup / Review Setup | Optional explicit remote publish or backup sync | Exports and reloads after setup | User initiated |
 
+Pull and Push pass the selected registered Dolt remote name to `bd`. If a
+configured sync destination does not match a registered remote, Beadazzle
+disables sync rather than falling back to a different destination.
+
 The toolbar Sync button is the normal team action. Its menu retains directional
 commands for recovery and advanced workflows:
 

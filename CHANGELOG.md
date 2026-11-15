@@ -25,6 +25,7 @@ for users, not for the commit log.
 
 ### Fixed
 
+- Pull and Sync use the configured Dolt remote even when it is not named `origin`, and stop if that destination is not registered.
 - Automatic updates include the latest Sparkle security fixes and installation fixes for macOS 27.
 - Nested lists keep their levels when copied and pasted, and Markdown tables follow window size changes more reliably.
 - Switching between beads no longer leaves stale code-block state that can cause a crash or show a copy button over plain text.

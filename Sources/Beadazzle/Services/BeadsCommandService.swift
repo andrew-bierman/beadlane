@@ -1332,6 +1332,10 @@ struct BeadsCommandService {
         timeout: Duration
     ) async throws {
         let executable = executable()
+        // Run the command against the same remote that was checked for access.
+        // Without an explicit name, bd defaults to origin even when another
+        // configured remote was selected for this project.
+        let routedArguments = remote.map { arguments + ["--remote", $0.name] } ?? arguments
         var environment = BeadsCLI.subprocessEnvironment(executableURL: executable.url)
         if let remote {
             environment = await SSHAgentSocketResolver.environment(
@@ -1343,7 +1347,7 @@ struct BeadsCommandService {
         _ = try await Task.detached(priority: .userInitiated) {
             try Self.runOutputSynchronously(
                 projectURL: projectURL,
-                arguments: arguments,
+                arguments: routedArguments,
                 executable: executable,
                 timeout: timeout,
                 environment: environment,

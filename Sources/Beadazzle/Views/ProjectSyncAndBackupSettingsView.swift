@@ -163,6 +163,10 @@ private struct ProjectDoltSyncSection: View {
                     Text(mode.title).tag(mode)
                 }
             }
+            if store.hasUnresolvedProjectDoltSyncRemote {
+                Text("The configured sync remote does not match a registered Dolt remote. Resolve it before syncing.")
+                    .foregroundStyle(.secondary)
+            }
             if let lastSuccess = store.automaticSyncLastSuccessAt {
                 LabeledContent("Last automatic sync") {
                     Text(lastSuccess, style: .relative)
