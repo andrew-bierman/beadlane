@@ -4,6 +4,99 @@ import XCTest
 
 @MainActor
 final class BeadStoreProjectHealthTests: XCTestCase {
+    func testAutomaticPullIsOptInAndDoesNotPush() async throws {
+        let projectURL = try makeProject(named: "AutomaticPull", issueID: "bd-1")
+        let commands = ProjectHealthTestCommands()
+        let store = BeadStore(userDefaults: makeUserDefaults(), commands: commands)
+        store.openProject(projectURL)
+        try await waitUntil { !store.isLoading && store.issue(with: "bd-1") != nil }
+        await store.waitForPendingProjectDoltRemotesLoad()
+        let sceneID = UUID()
+        store.setWorkspaceSceneActive(true, sceneID: sceneID)
+        let runner = Task { await ProjectAutomaticSyncRunner.run(
+            store: store, projectURL: projectURL, interval: 0.05, checkDelay: .milliseconds(5)
+        ) }
+        defer {
+            runner.cancel()
+            store.setWorkspaceSceneActive(false, sceneID: sceneID)
+        }
+
+        try await Task.sleep(for: .milliseconds(150))
+        let callsWhileOff = await commands.pullCallCount
+        XCTAssertEqual(callsWhileOff, 0)
+        store.automaticSyncMode = .pull
+        store.setWorkspaceSceneActive(false, sceneID: sceneID)
+        try await Task.sleep(for: .milliseconds(150))
+        let callsWhileInactive = await commands.pullCallCount
+        XCTAssertEqual(callsWhileInactive, 0)
+        store.setWorkspaceSceneActive(true, sceneID: sceneID)
+        for _ in 0..<200 {
+            if await commands.pullCallCount > 0, store.projectHealthAction == nil { break }
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        let pullCalls = await commands.pullCallCount
+        let pushCalls = await commands.pushCallCount
+        XCTAssertGreaterThanOrEqual(pullCalls, 1)
+        XCTAssertEqual(pushCalls, 0)
+    }
+
+    func testAutomaticSyncPullsBeforePushing() async throws {
+        let projectURL = try makeProject(named: "AutomaticSync", issueID: "bd-1")
+        let commands = ProjectHealthTestCommands()
+        let store = BeadStore(userDefaults: makeUserDefaults(), commands: commands)
+        store.openProject(projectURL)
+        try await waitUntil { !store.isLoading && store.issue(with: "bd-1") != nil }
+        await store.waitForPendingProjectDoltRemotesLoad()
+        let sceneID = UUID()
+        store.setWorkspaceSceneActive(true, sceneID: sceneID)
+        store.automaticSyncMode = .sync
+        let runner = Task { await ProjectAutomaticSyncRunner.run(
+            store: store, projectURL: projectURL, interval: 0.05, checkDelay: .milliseconds(5)
+        ) }
+        defer {
+            runner.cancel()
+            store.setWorkspaceSceneActive(false, sceneID: sceneID)
+        }
+        for _ in 0..<200 {
+            if await commands.pushCallCount > 0, store.automaticSyncLastSuccessAt != nil { break }
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        let events = await commands.commandEvents
+        XCTAssertEqual(Array(events.filter { $0 == "pull" || $0 == "push" }.prefix(2)), ["pull", "push"])
+        XCTAssertFalse(store.automaticSyncPausedAfterFailure)
+        XCTAssertNil(store.project.projectDoltSyncOutcome)
+        XCTAssertNotNil(store.automaticSyncLastSuccessAt)
+    }
+
+    func testAutomaticSyncPausesAfterFailedPullWithoutPushing() async throws {
+        let projectURL = try makeProject(named: "AutomaticSyncFailure", issueID: "bd-1")
+        let commands = ProjectHealthTestCommands(pullError: BeadError.commandFailed(
+            command: "bd dolt pull", output: "merge conflict"
+        ))
+        let store = BeadStore(userDefaults: makeUserDefaults(), commands: commands)
+        store.openProject(projectURL)
+        try await waitUntil { !store.isLoading && store.issue(with: "bd-1") != nil }
+        await store.waitForPendingProjectDoltRemotesLoad()
+        let sceneID = UUID()
+        store.setWorkspaceSceneActive(true, sceneID: sceneID)
+        store.automaticSyncMode = .sync
+        let runner = Task { await ProjectAutomaticSyncRunner.run(
+            store: store, projectURL: projectURL, interval: 0.05, checkDelay: .milliseconds(5)
+        ) }
+        defer {
+            runner.cancel()
+            store.setWorkspaceSceneActive(false, sceneID: sceneID)
+        }
+
+        try await waitUntil { store.automaticSyncPausedAfterFailure }
+        try await Task.sleep(for: .milliseconds(150))
+        let pullCalls = await commands.pullCallCount
+        let pushCalls = await commands.pushCallCount
+        XCTAssertEqual(pullCalls, 1)
+        XCTAssertEqual(pushCalls, 0)
+        XCTAssertNotNil(store.currentFailure)
+    }
+
     func testProjectHealthLoadCollectsEmbeddedStorageSnapshotHooksAndBackup() async throws {
         let projectURL = try makeProject(named: "HealthProject", issueID: "bd-1")
         let commands = ProjectHealthTestCommands()

@@ -57,6 +57,18 @@ enum BeadazzlePreferenceKeys {
         "ExperimentalJournalRefresh.\(projectURL.standardizedFileURL.path)"
     }
 
+    static func automaticSyncMode(projectURL: URL) -> String {
+        "Sync.Dolt.AutomaticMode.\(projectURL.standardizedFileURL.path)"
+    }
+
+    static func automaticSyncPaused(projectURL: URL) -> String {
+        "Sync.Dolt.AutomaticPaused.\(projectURL.standardizedFileURL.path)"
+    }
+
+    static func automaticSyncLastSuccess(projectURL: URL) -> String {
+        "Sync.Dolt.AutomaticLastSuccess.\(projectURL.standardizedFileURL.path)"
+    }
+
     static func newBeadAssigneeOverrideMode(projectURL: URL) -> String {
         "NewBeads.DefaultAssignee.OverrideMode.\(projectURL.standardizedFileURL.path)"
     }

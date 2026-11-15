@@ -47,6 +47,7 @@ The published DMG is intended to be `Developer ID` signed, notarized, and staple
 - Restores each project's workspace when reopened: last view or bookmark, search and filters, sort, board or list mode, outline expansion, selection, and open detail.
 - Project settings for storage, Dolt remote health and synchronization, snapshot freshness, readable export health, optional hooks, backups, and Ready workflow preferences.
 - One-action Beads Sync that pulls before pushing, directional Pull and Push commands, and lightweight Git-backed remote-change checks that do not download the database.
+- Optional per-project automatic pull or pull-and-push while the project is active, disabled by default and paused after errors.
 - Guided setup and repair for private, solo, team, and contributor checkouts, with reviewed commands and local drift reminders.
 - CRUD, bulk actions, comments, dependencies, gates, and workflow mutations routed through the `bd` CLI.
 - Context-aware JSONL snapshot reads, including redirected and worktree tracker directories.
@@ -75,7 +76,7 @@ Write support goes through `bd`, not direct file or database writes. Beadazzle c
 
 Beadazzle asks `bd` to export a fresh readable JSONL snapshot after mutations, Pull or Sync, and manual refreshes. Server-backed projects also export when opened and refresh when the app becomes active, without background polling. The app then reloads that snapshot so Beads remains the source of truth for validation, hooks, history, and storage semantics.
 
-Project Settings show the resolved storage mode, tracker directory, configured Dolt remotes, automatic-push policy, readable snapshot, Git integration, backup destination, and Beads role. The setup wizard can initialize or bootstrap a checkout, add a missing remote, configure safe automatic-push policy, install or remove bd-managed hooks, and register an optional backup after showing the exact commands. Sync, Pull, Push, remote publication, and backup synchronization remain explicit actions; Beadazzle does not synchronize in the background. Its optional remote-change check only reads a compatible Git-backed Dolt ref and never pulls database objects. Contributor routing is shown for clarity while creation and gate commands remain delegated to `bd`, which chooses the configured planning repository.
+Project Settings show the resolved storage mode, tracker directory, configured Dolt remotes, automatic-push policy, readable snapshot, Git integration, backup destination, and Beads role. The setup wizard can initialize or bootstrap a checkout, add a missing remote, configure safe automatic-push policy, install or remove bd-managed hooks, and register an optional backup after showing the exact commands. Pull and Sync can also run automatically while a project is active when enabled for that project; they are off by default and pause after a failure. Pull-and-push is intended for a single writer. Remote publication and backup synchronization remain explicit actions. The optional remote-change check only reads a compatible Git-backed Dolt ref and never pulls database objects. Contributor routing is shown for clarity while creation and gate commands remain delegated to `bd`, which chooses the configured planning repository.
 
 See [Beads Collaboration and Synchronization](docs/BEADS_SYNC.md) for the complete Git-versus-Dolt model, team setup, tracked and ignored files, Sync reconciliation, remote-change checks, hooks, and contributor behavior.
 
@@ -133,7 +134,7 @@ Beadazzle is designed around local repository data.
 
 - Reads come from the JSONL snapshot in the tracker directory reported by `bd context`.
 - When the app needs a readable snapshot after a mutation, it asks `bd` to export one and then reloads that snapshot.
-- Remote issue synchronization is user-initiated and routes through `bd dolt pull` and `bd dolt push`; source-code Git operations remain separate. Beadazzle can check a Git-backed Dolt ref for changes without pulling, but that read-only probe is not synchronization.
+- Remote issue synchronization routes through `bd dolt pull` and `bd dolt push`; it is user-initiated unless automatic sync is explicitly enabled for the project. Source-code Git operations remain separate. Beadazzle can check a Git-backed Dolt ref for changes without pulling, but that read-only probe is not synchronization.
 - Create, update, close, delete, dependency, comment, gate, and workflow-definition changes go through the `bd` CLI. Beadazzle does not write directly to Dolt tables or Beads JSONL records.
 - Beadazzle does not ship with `bd`; you must install it separately for write actions.
 - The app does not enable remote telemetry, analytics, or crash reporting by default.
