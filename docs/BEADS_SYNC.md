@@ -168,13 +168,23 @@ Settings. Dismissal lasts until the set of findings changes.
 | Edit or create a bead | None from Beadazzle; Beads may auto-push if the project explicitly enables it | Exports and reloads after the mutation | Local reconciliation is automatic |
 | Refresh / Command-R | None | Exports and reloads the readable snapshot | User initiated |
 | Check for Remote Changes | Read-only `git ls-remote` for `refs/dolt/data` | None | Manual, or periodic when eligible |
-| Pull | `bd dolt pull` | Exports and reloads afterward | User initiated |
+| Pull | `bd dolt pull` | Exports and reloads afterward | User initiated or explicitly enabled per project |
 | Push | `bd dolt push` | None | User initiated |
-| Sync | Pull first, then push if pull succeeded | Exports and reloads after the remote commands | User initiated |
+| Sync | Pull first, then push if pull succeeded | Exports and reloads after the remote commands | User initiated or explicitly enabled per project |
 | Setup / Review Setup | Optional explicit remote publish or backup sync | Exports and reloads after setup | User initiated |
 
 The toolbar Sync button is the normal team action. Its menu retains directional
 commands for recovery and advanced workflows:
+
+Project Settings > Sync & Backup can opt a project into automatic Pull, or
+automatic Pull and Push. Both are off by default. When enabled, Beadazzle waits
+five minutes, then attempts the chosen action at most every five minutes while
+the project window is active and the normal sync preconditions are satisfied.
+It pauses automatic attempts after a failure, including across app restarts,
+until the user resumes or changes the setting. Automatic pull and push is for
+single-writer projects; do not enable it on shared multi-writer Git-protocol
+remotes, where concurrent pushes can race and damage remote history. These are
+Beadazzle preferences, separate from Beads' `dolt.auto-push` setting.
 
 - Pull: Command-Option-Down Arrow
 - Push: Command-Option-Up Arrow
@@ -352,9 +362,9 @@ or another machine-local source, not tracked project configuration.
 
 The setup wizard can add a missing Dolt remote, configure `dolt.auto-push`, and
 register a backup after showing the exact command. It never replaces or removes
-an existing remote or backup destination, and Team Shared always keeps
-automatic push off. Directional Pull, Push, and Sync remain explicit workspace
-actions.
+an existing remote or backup destination, and Team Shared keeps Beads'
+automatic push off. Directional Pull, Push, and Sync remain available as
+explicit workspace actions; Beadazzle's separate automatic sync is opt-in.
 
 For the complete Beads contract, see:
 

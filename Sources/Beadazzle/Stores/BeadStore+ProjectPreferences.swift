@@ -323,6 +323,10 @@ extension BeadStore {
         loadStaleCutoffDaysPreference(for: url)
         loadReadyParentRollUpPreference(for: url)
         loadExternalRefreshPreference(for: url)
+        automaticSyncMode = userDefaults.string(forKey: BeadazzlePreferenceKeys.automaticSyncMode(projectURL: url))
+            .flatMap(ProjectAutomaticSyncMode.init(rawValue:)) ?? .off
+        automaticSyncPausedAfterFailure = userDefaults.bool(forKey: BeadazzlePreferenceKeys.automaticSyncPaused(projectURL: url))
+        automaticSyncLastSuccessAt = userDefaults.object(forKey: BeadazzlePreferenceKeys.automaticSyncLastSuccess(projectURL: url)) as? Date
         loadNewBeadAssigneeOverride(for: url)
         loadIssueTextSectionOverrides(for: url)
         loadPinnedStateDimensions(for: url)

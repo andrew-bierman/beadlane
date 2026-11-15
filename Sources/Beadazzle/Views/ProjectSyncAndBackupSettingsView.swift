@@ -124,6 +124,7 @@ private struct ProjectDoltSyncSection: View {
     private var project: BeadProjectStore { store.project }
 
     var body: some View {
+        @Bindable var store = store
         Section {
             LabeledContent("Remotes") {
                 if let remotes = project.projectHealthSnapshot?.doltRemotes.value {
@@ -154,6 +155,25 @@ private struct ProjectDoltSyncSection: View {
                         nil,
                         errorMessage: project.projectHealthSnapshot?.storageConfig.errorMessage
                     )
+                }
+            }
+
+            Picker("Automatic sync", selection: $store.automaticSyncMode) {
+                ForEach(ProjectAutomaticSyncMode.allCases) { mode in
+                    Text(mode.title).tag(mode)
+                }
+            }
+            if let lastSuccess = store.automaticSyncLastSuccessAt {
+                LabeledContent("Last automatic sync") {
+                    Text(lastSuccess, style: .relative)
+                        .help(lastSuccess.formatted(date: .abbreviated, time: .shortened))
+                }
+            }
+            if store.automaticSyncPausedAfterFailure {
+                HStack {
+                    Text("Automatic sync paused after an error.")
+                        .foregroundStyle(.secondary)
+                    Button("Resume") { store.automaticSyncPausedAfterFailure = false }
                 }
             }
 
@@ -207,7 +227,7 @@ private struct ProjectDoltSyncSection: View {
         } header: {
             Text("Dolt Sync")
         } footer: {
-            Text("Dolt remotes sync the Beads database and its history. They are separate from your project's Git commits.")
+            Text("Dolt remotes sync the Beads database and its history, separately from Git commits. Automatic sync runs at most every five minutes while this project is active. Pull and push is intended for a single writer; concurrent automatic pushes can damage shared remote history. Automatic sync pauses after a failure.")
         }
     }
 

@@ -13,6 +13,10 @@ for users, not for the commit log.
 
 ## [Unreleased]
 
+### Added
+
+- Optionally pull, or pull and push, Dolt changes automatically for individual projects. Automatic sync is off by default and pauses if a sync fails.
+
 ### Changed
 
 - Filters and search now narrow the outline the same way they narrow the flat list. Child beads that don't match, such as closed tasks under an open epic, stay hidden unless you turn on **Show all children** in the bead list's View menu or in Settings > Display. Parents of matching beads still appear for context. If you already changed this setting, your choice is kept.

@@ -3,6 +3,28 @@ import XCTest
 
 @MainActor
 final class BeadStorePreferencesTests: XCTestCase {
+    func testAutomaticSyncPreferenceDefaultsOffAndIsProjectSpecific() async throws {
+        let defaults = makeUserDefaults()
+        let firstURL = try makeProject(issueLine(id: "bd-first", status: "open", type: "task"))
+        let secondURL = try makeProject(issueLine(id: "bd-second", status: "open", type: "task"))
+        let store = BeadStore(userDefaults: defaults, commands: PreferenceTestCommands())
+        store.openProject(firstURL)
+        try await waitUntil { !store.isLoading && store.issue(with: "bd-first") != nil }
+        XCTAssertEqual(store.automaticSyncMode, .off)
+        store.automaticSyncMode = .pull
+        store.automaticSyncPausedAfterFailure = true
+
+        store.openProject(secondURL)
+        try await waitUntil { !store.isLoading && store.issue(with: "bd-second") != nil }
+        XCTAssertEqual(store.automaticSyncMode, .off)
+        store.automaticSyncMode = .sync
+
+        store.openProject(firstURL)
+        try await waitUntil { !store.isLoading && store.issue(with: "bd-first") != nil }
+        XCTAssertEqual(store.automaticSyncMode, .pull)
+        XCTAssertTrue(store.automaticSyncPausedAfterFailure)
+    }
+
     func testNewBeadAssigneePreferenceNormalizesSpecificValues() {
         XCTAssertEqual(NewBeadAssigneePreference.specific("  alex@example.com  ").normalized, .specific("alex@example.com"))
         XCTAssertEqual(NewBeadAssigneePreference.specific(" \n ").normalized, .unassigned)

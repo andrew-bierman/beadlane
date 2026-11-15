@@ -1049,6 +1049,37 @@ final class BeadStore {
             journalRefreshPreferenceDidChange()
         }
     }
+    var automaticSyncMode: ProjectAutomaticSyncMode = .off {
+        didSet {
+            guard oldValue != automaticSyncMode else { return }
+            automaticSyncPausedAfterFailure = false
+            guard !isLoadingProjectPreferences, let projectURL else { return }
+            userDefaults.set(
+                automaticSyncMode.rawValue,
+                forKey: BeadazzlePreferenceKeys.automaticSyncMode(projectURL: projectURL)
+            )
+        }
+    }
+    var automaticSyncPausedAfterFailure = false {
+        didSet {
+            guard oldValue != automaticSyncPausedAfterFailure, !isLoadingProjectPreferences,
+                  let projectURL else { return }
+            userDefaults.set(
+                automaticSyncPausedAfterFailure,
+                forKey: BeadazzlePreferenceKeys.automaticSyncPaused(projectURL: projectURL)
+            )
+        }
+    }
+    var automaticSyncLastSuccessAt: Date? {
+        didSet {
+            guard oldValue != automaticSyncLastSuccessAt, !isLoadingProjectPreferences,
+                  let projectURL else { return }
+            userDefaults.set(
+                automaticSyncLastSuccessAt,
+                forKey: BeadazzlePreferenceKeys.automaticSyncLastSuccess(projectURL: projectURL)
+            )
+        }
+    }
     var showsOwnerInBeadList = false {
         didSet {
             guard oldValue != showsOwnerInBeadList else { return }

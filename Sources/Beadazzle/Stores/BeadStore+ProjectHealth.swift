@@ -279,31 +279,36 @@ extension BeadStore {
     @discardableResult
     func synchronizeProjectIssues(
         reportsFailureInWorkspace: Bool = false,
-        completionRefresh: ProjectHealthCompletionRefresh = .none
+        completionRefresh: ProjectHealthCompletionRefresh = .none,
+        announcesCompletion: Bool = true
     ) async -> Bool {
         await performProjectIssuePullAction(
             .synchronize,
             reportsFailureInWorkspace: reportsFailureInWorkspace,
-            completionRefresh: completionRefresh
+            completionRefresh: completionRefresh,
+            announcesCompletion: announcesCompletion
         )
     }
 
     @discardableResult
     func pullProjectIssues(
         reportsFailureInWorkspace: Bool = false,
-        completionRefresh: ProjectHealthCompletionRefresh = .none
+        completionRefresh: ProjectHealthCompletionRefresh = .none,
+        announcesCompletion: Bool = true
     ) async -> Bool {
         await performProjectIssuePullAction(
             .pull,
             reportsFailureInWorkspace: reportsFailureInWorkspace,
-            completionRefresh: completionRefresh
+            completionRefresh: completionRefresh,
+            announcesCompletion: announcesCompletion
         )
     }
 
     private func performProjectIssuePullAction(
         _ pullAction: ProjectIssuePullAction,
         reportsFailureInWorkspace: Bool,
-        completionRefresh: ProjectHealthCompletionRefresh
+        completionRefresh: ProjectHealthCompletionRefresh,
+        announcesCompletion: Bool
     ) async -> Bool {
         guard canSynchronizeProjectIssues else { return false }
         guard let beadsDirectoryURL = projectEnvironment?.beadsDirectoryURL else { return false }
@@ -317,7 +322,8 @@ extension BeadStore {
                 for: projectURL,
                 succeeded: succeeded,
                 cancelled: cancelled,
-                completionRefresh: completionRefresh
+                completionRefresh: completionRefresh,
+                showsSuccessOutcome: announcesCompletion
             )
         }
         let mutationLifetimeGeneration = beginMutation()
@@ -402,7 +408,7 @@ extension BeadStore {
                 cancelled = true
                 return false
             }
-            announceCompletion(remoteAction.completionAnnouncement)
+            if announcesCompletion { announceCompletion(remoteAction.completionAnnouncement) }
             succeeded = true
             return true
         } catch is CancellationError {
@@ -830,7 +836,8 @@ extension BeadStore {
         for actionProjectURL: URL,
         succeeded: Bool,
         cancelled: Bool,
-        completionRefresh: ProjectHealthCompletionRefresh
+        completionRefresh: ProjectHealthCompletionRefresh,
+        showsSuccessOutcome: Bool = true
     ) {
         guard projectURL == actionProjectURL else { return }
         let failure = projectHealthActionError
@@ -840,7 +847,7 @@ extension BeadStore {
             completionRefresh: completionRefresh
         )
         let outcome: ProjectDoltSyncOutcome?
-        if succeeded {
+        if succeeded && showsSuccessOutcome {
             outcome = .succeeded(action, elapsed: elapsed)
         } else if cancelled {
             outcome = .cancelled(action, elapsed: elapsed)

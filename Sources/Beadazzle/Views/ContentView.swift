@@ -162,6 +162,9 @@ struct ContentView: View {
                 sceneID: doltRemoteFreshnessSceneID
             )
         }
+        .task(id: project.projectURL) {
+            await ProjectAutomaticSyncRunner.run(store: store, projectURL: project.projectURL)
+        }
         .onChange(of: workspace.requestedSavedViewEditorID) { _, id in
             guard let id else { return }
             presentedSheet = .savedView(SavedViewEditorRequest(mode: .edit(id)))
